@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 80% -10%, #FFF4B8 0%, transparent 60%),
+    radial-gradient(900px 500px at 0% 110%, #E6D6FF 0%, transparent 60%),
+    linear-gradient(180deg, #B3DBFF 0%, #D6ECFF 45%, #EAF6FF 100%);
+  background-attachment: fixed;
+  color: #1F3A5F;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100%;
+}
+
+::selection {
+  background: #87C5FF;
+  color: #1F3A5F;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #B3DBFF; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #5BAEF8; }
+
+.font-serif-italic { font-family: 'Playfair Display', serif; font-style: italic; }
+
+/* Floating cloud decorations */
+.cloud-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+.cloud {
+  position: absolute;
+  background: #fff;
+  border-radius: 999px;
+  filter: blur(0.5px);
+  opacity: 0.85;
+  box-shadow:
+    25px 10px 0 -2px #fff,
+    -25px 12px 0 -4px #fff,
+    50px 0 0 -6px #fff,
+    -50px 5px 0 -8px #fff;
+}
+.cloud::before, .cloud::after {
+  content: '';
+  position: absolute;
+  background: #fff;
+  border-radius: 50%;
+}
+.cloud::before { width: 60%; height: 130%; top: -50%; left: 15%; }
+.cloud::after  { width: 45%; height: 110%; top: -35%; right: 10%; }
+
+.glass {
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.glass-strong {
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
