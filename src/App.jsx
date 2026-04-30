@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   Home, ListChecks, BookOpen, BarChart3, Settings as SettingsIcon,
-  Library, Lightbulb, Sparkles, Sparkle, Menu, X, Cloud,
+  Library, Lightbulb, Sparkles, Sparkle, Menu, X, Cloud, ListTodo,
 } from 'lucide-react'
 import { loadData, saveData } from './lib/storage'
 import Dashboard from './components/Dashboard'
@@ -13,12 +13,14 @@ import BooksTracker from './components/BooksTracker'
 import IdeasBoard from './components/IdeasBoard'
 import Motivation from './components/Motivation'
 import NewThings from './components/NewThings'
+import Tasks from './components/Tasks'
 
 const NAV_GROUPS = [
   {
     label: 'Meaningful Days',
     items: [
       { id: 'home', label: 'Hari Ini', icon: Home },
+      { id: 'tasks', label: 'Tugas', icon: ListTodo },
       { id: 'habits', label: 'Kebiasaan', icon: ListChecks },
       { id: 'journal', label: 'Jurnal', icon: BookOpen },
       { id: 'stats', label: 'Statistik', icon: BarChart3 },
@@ -126,7 +128,8 @@ export default function App() {
       )}
 
       <main className="flex-1 pb-24 md:pb-6 relative z-10">
-        {tab === 'home' && <Dashboard data={data} setData={setData} />}
+        {tab === 'home' && <Dashboard data={data} setData={setData} onGoToTasks={() => setTab('tasks')} />}
+        {tab === 'tasks' && <Tasks data={data} setData={setData} />}
         {tab === 'habits' && <HabitsManager data={data} setData={setData} />}
         {tab === 'journal' && <JournalHistory data={data} />}
         {tab === 'stats' && <Stats data={data} />}
@@ -139,7 +142,7 @@ export default function App() {
 
       {/* Mobile bottom nav (quick access to top 5) */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 glass-strong border-t border-white/60 px-2 py-2 flex justify-around z-30">
-        {[ALL_TABS[0], ALL_TABS[4], ALL_TABS[5], ALL_TABS[6], ALL_TABS[7]].map((t) => {
+        {[ALL_TABS[0], ALL_TABS[1], ALL_TABS[5], ALL_TABS[6], ALL_TABS[7]].map((t) => {
           const Icon = t.icon
           return (
             <button

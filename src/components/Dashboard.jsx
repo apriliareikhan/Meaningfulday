@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Check, Heart, Sparkles, Flame, Send } from 'lucide-react'
-import { getEntry, setEntry, todayKey, calcGratitudeStreak, totalGratitudeDays } from '../lib/storage'
+import { Check, Heart, Sparkles, Flame, Send, ListTodo, AlertCircle, ArrowRight } from 'lucide-react'
+import {
+  getEntry, setEntry, todayKey, calcGratitudeStreak, totalGratitudeDays,
+  classifyTask, TASK_CATEGORIES,
+} from '../lib/storage'
 import {
   getDailyMessage, getDailyPrompt, getMilestoneFor, fireConfetti, appreciationFor,
 } from '../lib/appreciation'
@@ -13,7 +16,7 @@ const MOODS = [
   { id: 'tired', emoji: '😴', label: 'Lelah' },
 ]
 
-export default function Dashboard({ data, setData }) {
+export default function Dashboard({ data, setData, onGoToTasks }) {
   const dateKey = todayKey()
   const entry = getEntry(data, dateKey)
   const [gratitude, setGratitude] = useState(entry.gratitude)
@@ -82,6 +85,8 @@ export default function Dashboard({ data, setData }) {
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 animate-fade-in">
       <Header streak={streak} totalDays={totalDays} name={data.user.name} />
+
+      <TasksReminder tasks={data.tasks || []} onGoToTasks={onGoToTasks} />
 
       <div className="mt-6 mb-8 p-5 rounded-2xl bg-gradient-to-br from-rose-soft/40 to-gold/20 border border-rose-soft/60">
         <p className="font-serif-italic text-lg text-ink/80 leading-relaxed">
@@ -176,6 +181,89 @@ export default function Dashboard({ data, setData }) {
 
       {toast && <Toast toast={toast} />}
       {milestone && <MilestoneModal milestone={milestone} onClose={() => setMilestone(null)} />}
+    </div>
+  )
+}
+
+function TasksReminder({ tasks, onGoToTasks }) {
+  const grouped = useMemo(() => {
+    const g = { overdue: [], today: [], tomorrow: [] }
+    tasks.forEach((t) => {
+      const c = classifyTask(t)
+      if (c === 'overdue' || c === 'today' || c === 'tomorrow') g[c].push(t)
+    })
+    return g
+  }, [tasks])
+
+  const total = grouped.overdue.length + grouped.today.length + grouped.tomorrow.length
+  if (total === 0) return null
+
+  return (
+    <div className="mt-6 p-4 rounded-2xl bg-white border border-ink/10">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-semibold flex items-center gap-2">
+          <ListTodo className="w-4 h-4 text-sky-500" /> Pengingat tugas
+        </h3>
+        {onGoToTasks && (
+          <button
+            onClick={onGoToTasks}
+            className="text-xs text-sky-600 hover:text-sky-700 font-medium flex items-center gap-1"
+          >
+            Lihat semua <ArrowRight className="w-3 h-3" />
+          </button>
+        )}
+      </div>
+      <div className="space-y-2">
+        {grouped.overdue.length > 0 && (
+          <ReminderSection
+            label="🔴 Lewat deadline"
+            tasks={grouped.overdue}
+            color="text-rose-deep"
+            bg="bg-rose-deep/5"
+          />
+        )}
+        {grouped.today.length > 0 && (
+          <ReminderSection
+            label="🟠 Hari ini"
+            tasks={grouped.today}
+            color="text-gold"
+            bg="bg-gold/10"
+          />
+        )}
+        {grouped.tomorrow.length > 0 && (
+          <ReminderSection
+            label="🟡 Besok (H-1)"
+            tasks={grouped.tomorrow}
+            color="text-lemon-deep"
+            bg="bg-lemon-soft/40"
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ReminderSection({ label, tasks, color, bg }) {
+  return (
+    <div className={`rounded-xl p-3 ${bg}`}>
+      <p className={`text-xs font-semibold mb-1.5 ${color}`}>{label} · {tasks.length}</p>
+      <ul className="space-y-1">
+        {tasks.slice(0, 4).map((t) => {
+          const cat = TASK_CATEGORIES.find((c) => c.id === t.category)
+          return (
+            <li key={t.id} className="flex items-center gap-2 text-sm">
+              <span className="text-xs">{cat?.emoji}</span>
+              <span className={t.status === 'done' ? 'line-through text-ink/40' : 'text-ink/80'}>
+                {t.title}
+              </span>
+              {t.priority === 'high' && <span className="text-rose-deep text-xs">🔥</span>}
+            </li>
+          )
+        })}
+        {tasks.length > 4 && (
+          <li className="text-xs text-ink/50 italic">dan {tasks.length - 4} tugas lainnya...</li>
+        )}
+      </ul>
     </div>
   )
 }

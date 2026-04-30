@@ -18,6 +18,8 @@ const defaultData = () => ({
   newThings: [],
   // Jurnal "New Me" — refleksi panjang tentang perubahan diri
   newMeJournal: [],
+  // Tugas / to-do dengan kategori, deadline, prioritas, subtask
+  tasks: [],
   meta: { totalEntries: 0, longestStreak: 0 },
 })
 
@@ -33,6 +35,7 @@ function migrate(data) {
     ideas: data.ideas || [],
     newThings: data.newThings || [],
     newMeJournal: data.newMeJournal || [],
+    tasks: data.tasks || [],
     meta: { ...def.meta, ...(data.meta || {}) },
   }
 }
@@ -106,6 +109,58 @@ export function totalGratitudeDays(entries) {
   return Object.values(entries).filter(
     (e) => e?.gratitude?.some((g) => g && g.trim().length > 0),
   ).length
+}
+
+// ===== Tasks helpers =====
+
+export const TASK_CATEGORIES = [
+  { id: 'kantor', label: 'Kantor', color: 'sky', emoji: '💼' },
+  { id: 'kampus', label: 'Kampus', color: 'lilac', emoji: '🎓' },
+  { id: 'hobi',   label: 'Hobi',   color: 'mint', emoji: '🎨' },
+  { id: 'pribadi', label: 'Pribadi', color: 'rose', emoji: '🌸' },
+]
+
+export const TASK_PRIORITIES = [
+  { id: 'high',   label: 'Tinggi',  color: 'rose-deep' },
+  { id: 'medium', label: 'Sedang',  color: 'gold' },
+  { id: 'low',    label: 'Rendah',  color: 'sage-deep' },
+]
+
+export function createTask({ title, category = 'pribadi', priority = 'medium', deadline = null, notes = '', subtasks = [] }) {
+  return {
+    id: crypto.randomUUID(),
+    title: title.trim(),
+    category,
+    priority,
+    deadline, // ISO string e.g. '2026-05-01' or '2026-05-01T14:00'
+    notes,
+    subtasks: subtasks.map((s) => ({ id: crypto.randomUUID(), text: s, done: false })),
+    status: 'todo', // 'todo' | 'doing' | 'done'
+    createdAt: new Date().toISOString(),
+    completedAt: null,
+    pomodoroCount: 0, // berapa sesi pomodoro selesai untuk task ini
+  }
+}
+
+// Compare deadline vs today; returns negative if overdue, 0 if today, positive if future
+export function daysUntilDeadline(deadline) {
+  if (!deadline) return null
+  const d = new Date(deadline)
+  d.setHours(0, 0, 0, 0)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return Math.round((d - today) / (1000 * 60 * 60 * 24))
+}
+
+export function classifyTask(task) {
+  if (task.status === 'done') return 'done'
+  const days = daysUntilDeadline(task.deadline)
+  if (days === null) return 'someday'
+  if (days < 0) return 'overdue'
+  if (days === 0) return 'today'
+  if (days === 1) return 'tomorrow'
+  if (days <= 7) return 'thisweek'
+  return 'later'
 }
 
 export function habitCompletionLast30(entries, habitId) {
